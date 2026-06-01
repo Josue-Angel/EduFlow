@@ -13,23 +13,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.runtime.rememberCoroutineScope
 import com.example.eduflow.api.ConsejosApi
+import com.example.eduflow.service.HorarioService
+import com.example.eduflow.storage.HorarioStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-//Importar
-import com.example.eduflow.service.HorarioService
-import com.example.eduflow.storage.HorarioStorage
-
-val scope = rememberCoroutineScope()
-var consejo by remember { mutableStateOf("") }
-
-var materias by remember { mutableStateOf(HorarioStorage.obtenerMaterias()) }
-
-val servicio = HorarioService()
-var recomendacion by remember { mutableStateOf("") }
 
 val VerdePrimario = Color(0xFF2D5A3D)
 val Beige = Color(0xFFF5F0E8)
@@ -38,6 +27,11 @@ val TextoSecundario = Color(0xFF6B6B6B)
 
 @Composable
 fun HorarioView() {
+    val scope = rememberCoroutineScope()
+    val servicio = HorarioService()
+    var consejo by remember { mutableStateOf("") }
+    var recomendacion by remember { mutableStateOf("") }
+    var materias by remember { mutableStateOf(HorarioStorage.obtenerMaterias()) }
     var nombreMateria by remember { mutableStateOf("") }
     var dificultad by remember { mutableStateOf("") }
     var materiaGuardada by remember { mutableStateOf("") }
