@@ -19,10 +19,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+//Importar
 import com.example.eduflow.service.HorarioService
+import com.example.eduflow.storage.HorarioStorage
 
 val scope = rememberCoroutineScope()
 var consejo by remember { mutableStateOf("") }
+
+var materias by remember { mutableStateOf(HorarioStorage.obtenerMaterias()) }
 
 val servicio = HorarioService()
 var recomendacion by remember { mutableStateOf("") }
@@ -117,6 +121,13 @@ fun HorarioView() {
                         dificultad.toIntOrNull() ?: 1
                     )
                     mostrarCard = true
+
+                    HorarioStorage.guardarMateria(
+                        nombreMateria,
+                        dificultad.toIntOrNull() ?: 1
+                    )
+                    materias = HorarioStorage.obtenerMaterias()
+
                 } else {
                     mostrarCard = false
                 }
@@ -169,6 +180,42 @@ fun HorarioView() {
                 }
             }
         }
+        if (materias.isNotEmpty()) {
+            Text(
+                text = "Materias guardadas:",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = VerdePrimario,
+                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+            )
+            materias.forEach { (nombre, dificultad) ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White
+                    ),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            text = nombre,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = VerdePrimario
+                        )
+                        Text(
+                            text = "Dificultad: $dificultad / 10",
+                            fontSize = 12.sp,
+                            color = TextoSecundario
+                        )
+                    }
+                }
+            }
+        }
+
         scope.launch {
             consejo = withContext(Dispatchers.IO) {
                 ConsejosApi().obtenerConsejo()
