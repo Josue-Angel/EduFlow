@@ -13,8 +13,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.rememberCoroutineScope
+import com.example.eduflow.api.ConsejosApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 import com.example.eduflow.service.HorarioService
+
+val scope = rememberCoroutineScope()
+var consejo by remember { mutableStateOf("") }
 
 val servicio = HorarioService()
 var recomendacion by remember { mutableStateOf("") }
@@ -152,7 +160,18 @@ fun HorarioView() {
                         fontSize = 14.sp,
                         modifier = Modifier.padding(top = 8.dp)
                     )
+                    Text(
+                        text = "Consejo: $consejo",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
                 }
+            }
+        }
+        scope.launch {
+            consejo = withContext(Dispatchers.IO) {
+                ConsejosApi().obtenerConsejo()
             }
         }
     }
