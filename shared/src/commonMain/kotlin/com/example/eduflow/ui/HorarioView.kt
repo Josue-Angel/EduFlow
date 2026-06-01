@@ -14,6 +14,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import com.example.eduflow.service.HorarioService
+
+val servicio = HorarioService()
+var recomendacion by remember { mutableStateOf("") }
+
 val VerdePrimario = Color(0xFF2D5A3D)
 val Beige = Color(0xFFF5F0E8)
 val TextoPrimario = Color(0xFF1A1A1A)
@@ -99,6 +104,10 @@ fun HorarioView() {
                 if (nombreMateria.isNotEmpty() && dificultad.isNotEmpty()) {
                     materiaGuardada = nombreMateria
                     dificultadGuardada = dificultad
+                    recomendacion = servicio.generarRecomendacion(
+                        nombreMateria,
+                        dificultad.toIntOrNull() ?: 1
+                    )
                     mostrarCard = true
                 } else {
                     mostrarCard = false
@@ -137,6 +146,12 @@ fun HorarioView() {
                     )
                     Text(text = "Materia: $materiaGuardada", color = Color.White, fontSize = 14.sp)
                     Text(text = "Dificultad: $dificultadGuardada / 10", color = Color.White, fontSize = 14.sp)
+                    Text(
+                        text = recomendacion,
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
                 }
             }
         }
