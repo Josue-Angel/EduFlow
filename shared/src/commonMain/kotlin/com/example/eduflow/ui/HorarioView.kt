@@ -1,0 +1,144 @@
+// ui/HorarioView.kt
+package com.example.eduflow.ui
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+val VerdePrimario = Color(0xFF2D5A3D)
+val Beige = Color(0xFFF5F0E8)
+val TextoPrimario = Color(0xFF1A1A1A)
+val TextoSecundario = Color(0xFF6B6B6B)
+
+@Composable
+fun HorarioView() {
+    var nombreMateria by remember { mutableStateOf("") }
+    var dificultad by remember { mutableStateOf("") }
+    var materiaGuardada by remember { mutableStateOf("") }
+    var dificultadGuardada by remember { mutableStateOf("") }
+    var mostrarCard by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Beige)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "StudyFlow",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = VerdePrimario,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Text(
+            text = "Registro de Materia",
+            fontSize = 18.sp,
+            color = TextoSecundario,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+
+        Text(
+            text = "Nombre de la materia",
+            fontSize = 14.sp,
+            color = TextoPrimario,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
+        )
+        TextField(
+            value = nombreMateria,
+            onValueChange = { nombreMateria = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
+                .clip(RoundedCornerShape(12.dp)),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedIndicatorColor = VerdePrimario,
+                unfocusedIndicatorColor = Color.Transparent
+            )
+        )
+
+        Text(
+            text = "Nivel de dificultad (1-10)",
+            fontSize = 14.sp,
+            color = TextoPrimario,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
+        )
+        TextField(
+            value = dificultad,
+            onValueChange = { dificultad = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp)
+                .clip(RoundedCornerShape(12.dp)),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedIndicatorColor = VerdePrimario,
+                unfocusedIndicatorColor = Color.Transparent
+            )
+        )
+
+        Button(
+            onClick = {
+                if (nombreMateria.isNotEmpty() && dificultad.isNotEmpty()) {
+                    materiaGuardada = nombreMateria
+                    dificultadGuardada = dificultad
+                    mostrarCard = true
+                } else {
+                    mostrarCard = false
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = VerdePrimario
+            )
+        ) {
+            Text(
+                text = "Registrar Materia",
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        if (mostrarCard) {
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = VerdePrimario),
+                elevation = CardDefaults.cardElevation(8.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Materia Registrada",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Text(text = "Materia: $materiaGuardada", color = Color.White, fontSize = 14.sp)
+                    Text(text = "Dificultad: $dificultadGuardada / 10", color = Color.White, fontSize = 14.sp)
+                }
+            }
+        }
+    }
+}
