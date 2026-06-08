@@ -1,28 +1,22 @@
 package com.example.eduflow
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import org.jetbrains.compose.resources.painterResource
+import com.example.eduflow.ui.*
 
-import eduflow.shared.generated.resources.Res
-import eduflow.shared.generated.resources.compose_multiplatform
-
-import com.example.eduflow.ui.HorarioView
-
+enum class Pantalla { LOGIN, DASHBOARD, STUDYCAST }
 @Composable
-@Preview
 fun App() {
-    HorarioView()
+    var pantalla by remember { mutableStateOf(Pantalla.LOGIN) }
+
+    when (pantalla) {
+        Pantalla.LOGIN      -> LoginView(
+            onLoginExitoso = { pantalla = Pantalla.DASHBOARD }
+        )
+        Pantalla.DASHBOARD  -> DashboardView(
+            onVerStudyCast = { pantalla = Pantalla.STUDYCAST }
+        )
+        Pantalla.STUDYCAST  -> StudyCastView(
+            onVolver = { pantalla = Pantalla.DASHBOARD }
+        )
+    }
 }
