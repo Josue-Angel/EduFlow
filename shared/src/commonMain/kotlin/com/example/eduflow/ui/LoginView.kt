@@ -11,22 +11,30 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.eduflow.service.AuthService
+import com.example.eduflow.config.ApiConfig
+import com.example.eduflow.storage.SesionStorage
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import kotlinx.coroutines.launch
 
 @Composable
-fun LoginView(onLoginExitoso: () -> Unit) {
-    val auth     = AuthService()
+fun LoginView(onLoginExitoso: () -> Unit, onIrARegistro: () -> Unit) {
+    val scope    = rememberCoroutineScope()
+    val client   = remember { HttpClient() }
     var email    by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var verPass  by remember { mutableStateOf(false) }
     var error    by remember { mutableStateOf(false) }
+    var errorMsg by remember { mutableStateOf("Correo o contraseña incorrectos") }
+    var cargando by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -43,7 +51,6 @@ fun LoginView(onLoginExitoso: () -> Unit) {
         ) {
             Spacer(Modifier.height(64.dp))
 
-            // Logo placeholder (círculo con símbolo)
             Box(
                 modifier = Modifier.size(80.dp),
                 contentAlignment = Alignment.Center
@@ -53,7 +60,6 @@ fun LoginView(onLoginExitoso: () -> Unit) {
                     shape = RoundedCornerShape(20.dp),
                     color = Color(0xFFDDE8E0)
                 ) {}
-                // Representación textual del logo libro+pulso
                 Text(
                     "SF",
                     fontSize = 28.sp,
@@ -65,7 +71,7 @@ fun LoginView(onLoginExitoso: () -> Unit) {
             Spacer(Modifier.height(16.dp))
 
             Text(
-                "StudyFlow",
+                "EduFlow",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = VerdePrimario
@@ -73,7 +79,6 @@ fun LoginView(onLoginExitoso: () -> Unit) {
 
             Spacer(Modifier.height(40.dp))
 
-            // Card formulario
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -104,7 +109,6 @@ fun LoginView(onLoginExitoso: () -> Unit) {
 
                     Spacer(Modifier.height(24.dp))
 
-                    // Campo correo
                     Text(
                         "Correo Institucional",
                         fontSize = 13.sp,
@@ -119,7 +123,7 @@ fun LoginView(onLoginExitoso: () -> Unit) {
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true,
                         placeholder = {
-                            Text("alumno@upt.mx",
+                            Text("alumno@upt.edu.mx",
                                 color = Color(0xFFBBBBBB), fontSize = 14.sp)
                         },
                         colors = OutlinedTextFieldDefaults.colors(
@@ -132,7 +136,6 @@ fun LoginView(onLoginExitoso: () -> Unit) {
 
                     Spacer(Modifier.height(16.dp))
 
-                    // Campo contraseña
                     Text(
                         "Contraseña",
                         fontSize = 13.sp,
@@ -167,7 +170,7 @@ fun LoginView(onLoginExitoso: () -> Unit) {
 
                     AnimatedVisibility(visible = error) {
                         Text(
-                            "Correo o contraseña incorrectos",
+                            errorMsg,
                             color = Color(0xFFB00020),
                             fontSize = 12.sp,
                             modifier = Modifier.padding(top = 6.dp)
@@ -178,8 +181,55 @@ fun LoginView(onLoginExitoso: () -> Unit) {
 
                     Button(
                         onClick = {
-                            if (auth.validar(email, password)) onLoginExitoso()
-                            else error = true
+                            if (email.isBlank() || password.isBlank()) {
+                                error = true
+                                errorMsg = "Completa correo y contraseña"
+                                return@Button
+                            }
+                            cargando = true
+                            error = false
+                            scope.launch {
+                                try {
+                                    val respuesta = client.post(
+                                        "${ApiConfig.BASE_URL}/auth/login"
+                                    ) {
+                                        contentType(ContentType.Application.Json)
+                                        setBody("""{"correo":"$email","password":"$password"}""")
+                                    }
+
+                                    val resp = respuesta.bodyAsText()
+
+                                    // Si la URL del backend está mal, Railway/el cliente
+                                    // regresan 404 y aquí lo distinguimos claramente.
+                                    if (respuesta.status == HttpStatusCode.NotFound) {
+                                        error = true
+                                        errorMsg = "No se encontró el servidor (revisa ApiConfig.BASE_URL)"
+                                        cargando = false
+                                        return@launch
+                                    }
+
+                                    val token = Regex(""""token":"([^"]+)"""")
+                                        .find(resp)?.groupValues?.get(1) ?: ""
+                                    val nom = Regex(""""nombre":"([^"]+)"""")
+                                        .find(resp)?.groupValues?.get(1) ?: ""
+                                    val rolResp = Regex(""""rol":"([^"]+)"""")
+                                        .find(resp)?.groupValues?.get(1) ?: "ALUMNO"
+
+                                    if (token.isNotEmpty()) {
+                                        SesionStorage.guardarToken(token, nom, rolResp)
+                                        onLoginExitoso()
+                                    } else {
+                                        val err = Regex(""""error":"([^"]+)"""")
+                                            .find(resp)?.groupValues?.get(1)
+                                        error = true
+                                        errorMsg = err ?: "Correo o contraseña incorrectos"
+                                    }
+                                } catch (e: Exception) {
+                                    error = true
+                                    errorMsg = "Sin conexión al servidor"
+                                }
+                                cargando = false
+                            }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -187,14 +237,27 @@ fun LoginView(onLoginExitoso: () -> Unit) {
                         shape = RoundedCornerShape(14.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = VerdePrimario
-                        )
+                        ),
+                        enabled = !cargando
                     ) {
-                        Text(
-                            "Iniciar Sesión  →",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White
-                        )
+                        if (cargando)
+                            CircularProgressIndicator(color = Color.White,
+                                modifier = Modifier.size(22.dp), strokeWidth = 2.dp)
+                        else
+                            Text(
+                                "Iniciar Sesión  →",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
+                            )
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+
+                    TextButton(onClick = onIrARegistro,
+                        modifier = Modifier.fillMaxWidth()) {
+                        Text("¿Nuevo en EduFlow? Crear cuenta",
+                            color = VerdePrimario, fontSize = 13.sp)
                     }
                 }
             }
@@ -202,7 +265,7 @@ fun LoginView(onLoginExitoso: () -> Unit) {
             Spacer(Modifier.height(20.dp))
 
             Text(
-                "Usuario de prueba: alumno@upt.mx / 1234",
+                "Usa tu correo institucional @upt.edu.mx",
                 fontSize = 11.sp,
                 color = TextoSecundario,
                 textAlign = TextAlign.Center
