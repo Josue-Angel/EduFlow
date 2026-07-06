@@ -16,13 +16,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.eduflow.config.ApiConfig
 import com.example.eduflow.storage.SesionStorage
+import com.example.eduflow.util.formatUnDecimal
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
@@ -587,7 +588,7 @@ private fun MentorDestacadoCard(mentor: MentorApiDto, onClick: () -> Unit) {
                         color = TextoPrimario, modifier = Modifier.padding(top = 6.dp))
                 }
                 if (mentor.totalCalif > 0)
-                    Text("★ ${"%.1f".format(mentor.promedio)}", fontSize = 12.sp,
+                    Text("★ ${formatUnDecimal(mentor.promedio)}", fontSize = 12.sp,
                         fontWeight = FontWeight.Bold, color = Color(0xFF8B6914))
             }
             Text("${mentor.carrera} · ${mentor.cuatrimestre}° cuatrimestre",
@@ -621,7 +622,7 @@ private fun MentorCompactoCard(mentor: MentorApiDto, onClick: () -> Unit) {
                     fontWeight = FontWeight.SemiBold, color = TextoPrimario)
             }
             if (mentor.totalCalif > 0)
-                Text("★ ${"%.1f".format(mentor.promedio)}", fontSize = 11.sp,
+                Text("★ ${formatUnDecimal(mentor.promedio)}", fontSize = 11.sp,
                     color = Color(0xFF8B6914), fontWeight = FontWeight.SemiBold)
         }
     }

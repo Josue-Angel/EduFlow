@@ -1,4 +1,3 @@
-//DashboardView.kt
 package com.example.eduflow.ui
 
 import androidx.compose.foundation.*
@@ -24,6 +23,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.launch
 import kotlinx.datetime.*
+import kotlin.time.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -83,13 +83,6 @@ fun DashboardView(
             val resp = client.get("${ApiConfig.BASE_URL}/materias") {
                 header("Authorization", "Bearer $token")
             }.bodyAsText()
-            // Antes esto se leia con un regex que exigia el JSON pegado
-            // sin espacios ("id":1,"nombre":"X"...). El serializador del
-            // backend no siempre devuelve ese formato exacto (puede variar
-            // el espaciado), por lo que el regex fallaba en silencio y
-            // la lista quedaba vacia aunque la materia si se hubiera
-            // guardado correctamente en MySQL. Con kotlinx.serialization
-            // se parsea el JSON real sin depender de su formato textual.
             val listaDto = jsonParserDashboard.decodeFromString<List<MateriaApiDto>>(resp)
             val lista = listaDto.map { MateriaUI(it.id, it.nombre, it.dificultad) }
             materias = lista

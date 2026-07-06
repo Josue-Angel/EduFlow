@@ -62,10 +62,16 @@ kotlin {
         jsMain.dependencies {
             implementation(libs.wrappers.browser)
             implementation(libs.ktor.client.js)
+            // kotlinx-datetime necesita esta librería de JS para resolver
+            // zonas horarias (Clock.System, TimeZone.currentSystemDefault())
+            // en el navegador. Sin ella, el runtime no encuentra esos
+            // símbolos y lanza IrLinkageError.
+            implementation(npm("@js-joda/timezone", "2.25.1"))
         }
         val wasmJsMain by getting {
             dependencies {
                 implementation(libs.ktor.client.js)     // ← AGREGAR
+                implementation(npm("@js-joda/timezone", "2.25.1"))
             }
         }
     }
